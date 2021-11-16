@@ -126,6 +126,7 @@
 
 
      public void liftArm() {
+
          if(toolOp.getButton(GamepadKeys.Button.DPAD_RIGHT)) robot.liftArm.liftHeight = LiftArm.LiftHeight.ZERO;
          else if(toolOp.getButton(GamepadKeys.Button.DPAD_DOWN)) robot.liftArm.liftHeight = LiftArm.LiftHeight.BOTTOM;
          else if(toolOp.getButton(GamepadKeys.Button.DPAD_LEFT)) robot.liftArm.liftHeight = LiftArm.LiftHeight.MIDDLE;

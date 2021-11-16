@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Scheduler;
 
+import com.qualcomm.robotcore.util.ElapsedTime;
+
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
 import org.firstinspires.ftc.teamcode.subsystems.LiftArm;
@@ -22,13 +24,26 @@ public class Command {
     }
 
     public Type type;
-    public double value;
-    public CommandState state;
+    private double value;
+    private LiftArm.LiftHeight liftValue;
+
+    private CommandState state = CommandState.IDLE;
+    public CommandState getState() { return state; }
+
+    private ElapsedTime timer = new ElapsedTime();
 
     Command(Type type, double value) {
         this.type = type;
         this.value = value;
-        this.state = CommandState.IDLE;
+    }
+
+    Command(Type type, LiftArm.LiftHeight value) {
+        this.type = type;
+        this.liftValue = value;
+    }
+
+    Command(Type type) {
+        this.type = type;
     }
 
     public void run() {
@@ -40,22 +55,19 @@ public class Command {
         switch(type) {
             case DRIVE: robot.driveTrain.autoDrive(value); break;
             case TURN: robot.driveTrain.autoTurn(value); break;
-            case LIFT: setLift(); break;
+            case LIFT: robot.liftArm.liftHeight = liftValue; break;
             case SETSERVO: robot.box.setPosition(value); break;
-            case STARTWHEEL: robot.duckWheel.set(1); break;
-            case STOPWHEEL: robot.duckWheel.set(0); break;
+            case STARTWHEEL:
+                robot.duckWheel.set(1);
+                state = CommandState.FINISHED;
+                break;
+            case STOPWHEEL:
+                robot.duckWheel.set(0);
+                state = CommandState.FINISHED;
+                break;
         }
-    }
 
-    public void setLift() {
-        Robot robot = Robot.getInstance();
-
-        switch((int) value) {
-            case 0: robot.liftArm.liftHeight = LiftArm.LiftHeight.ZERO; break;
-            case 1: robot.liftArm.liftHeight = LiftArm.LiftHeight.BOTTOM; break;
-            case 2: robot.liftArm.liftHeight = LiftArm.LiftHeight.MIDDLE; break;
-            case 3: robot.liftArm.liftHeight = LiftArm.LiftHeight.TOP; break;
-        }
+        timer.reset();
     }
 
     public void update() {
@@ -72,7 +84,7 @@ public class Command {
                 else state = CommandState.WORKING;
             break;
             case SETSERVO:
-                if(robot.box.getPosition() == value) state = CommandState.FINISHED;
+                if(timer.time() == 500) state = CommandState.FINISHED;
                 else state = CommandState.WORKING;
             break;
             default: state = CommandState.FINISHED; break;

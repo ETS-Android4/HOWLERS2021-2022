@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.Scheduler;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.LiftArm;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -18,17 +19,25 @@ public class Scheduler {
         WORKING,
     }
 
-    public SchedulerState schedulerState;
+    private SchedulerState schedulerState;
+    public SchedulerState getState() { return schedulerState; }
 
-    public List<Command> scheduledCommands = new ArrayList<Command>();
+    private List<Command> scheduledCommands = new ArrayList<Command>();
 
     public Scheduler() {
 
     }
 
-
     public void schedule(Command.Type command, double value) {
         scheduledCommands.add(new Command(command, value));
+    }
+
+    public void schedule(Command.Type command, LiftArm.LiftHeight value) {
+        scheduledCommands.add(new Command(command, value));
+    }
+
+    public void schedule(Command.Type command) {
+        scheduledCommands.add(new Command(command));
     }
 
     public void schedulerController() {
@@ -39,7 +48,7 @@ public class Scheduler {
 
             Command currentCommand = scheduledCommands.get(0);
 
-            switch(currentCommand.state) {
+            switch(currentCommand.getState()) {
                 case IDLE: currentCommand.run(); break;
                 case WORKING: currentCommand.update(); break;
                 case FINISHED: scheduledCommands.remove(currentCommand); break;

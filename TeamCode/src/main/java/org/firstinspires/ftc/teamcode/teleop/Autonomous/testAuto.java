@@ -31,6 +31,16 @@ public class testAuto extends OpMode {
 
         robot.liftArm.liftHeight = LiftArm.LiftHeight.ZERO;
 
+        scheduleCommands();
+    }
+
+    private void scheduleCommands() {
+        scheduler.schedule(Command.Type.LIFT, LiftArm.LiftHeight.TOP);
+        scheduler.schedule(Command.Type.SETSERVO, 0.71);
+        scheduler.schedule(Command.Type.SETSERVO, 0.3);
+        scheduler.schedule(Command.Type.LIFT, LiftArm.LiftHeight.BOTTOM);
+        scheduler.schedule(Command.Type.STARTWHEEL);
+        scheduler.schedule(Command.Type.STOPWHEEL);
     }
 
     @Override
@@ -42,10 +52,7 @@ public class testAuto extends OpMode {
 
         runtime.reset();
         robot.box.setPosition(0.3);
-        scheduler.schedule(Command.Type.LIFT, 3);
-        scheduler.schedule(Command.Type.SETSERVO, 0.71);
-        scheduler.schedule(Command.Type.SETSERVO, 0.3);
-        scheduler.schedule(Command.Type.LIFT, 0);
+
     }
 
     @Override
