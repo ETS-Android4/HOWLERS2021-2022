@@ -11,9 +11,13 @@ public class HerbergerMotor extends Motor {
 
     public static double TICKS_PER_REV;
 
+    private String name;
+    public String getName() { return name; }
+
     public HerbergerMotor(HardwareMap hMap, String name, double TPR) {
         m_motor = hMap.get(DcMotorEx.class, name);
         TICKS_PER_REV = TPR;
+        this.name = name;
     }
 
     public void set(double speed) {
