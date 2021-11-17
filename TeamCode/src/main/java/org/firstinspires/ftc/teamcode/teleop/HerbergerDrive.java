@@ -32,15 +32,15 @@
 
  import com.arcrobotics.ftclib.gamepad.GamepadEx;
  import com.arcrobotics.ftclib.gamepad.GamepadKeys;
- import com.arcrobotics.ftclib.hardware.motors.Motor;
  import com.qualcomm.robotcore.eventloop.opmode.OpMode;
  import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  import com.qualcomm.robotcore.util.ElapsedTime;
 
 
  import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
- import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
- import org.firstinspires.ftc.teamcode.subsystems.LiftArm;
+ import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DriveTrain;
+ import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftArm;
+ import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftHeight;
 
  @TeleOp(name="HerbergerDrive", group="Iterative Opmode")
  public class HerbergerDrive extends OpMode
@@ -94,7 +94,7 @@
      public void start() {
          runtime.reset();
          robot.box.setPosition(0.3);
-         robot.liftArm.setHeight(0);
+         robot.liftArm.setHeight(LiftHeight.ZERO);
      }
 
 
@@ -111,7 +111,7 @@
          liftArm();
          boxFlip();
          duckWheel();
-         intake(0.5);
+         //intake(0.5);
 
 
      }
@@ -121,16 +121,16 @@
          double speed = robot.driveTrain.getSpeed();
          double turn = driverOp.getLeftX() * -speed;
          double forward = driverOp.getLeftY() * speed;
-         robot.driveTrain.drive(forward, turn);
+         robot.driveTrain.drive(-forward, turn);
      }
 
 
      public void liftArm() {
 
-         if(toolOp.getButton(GamepadKeys.Button.DPAD_RIGHT)) robot.liftArm.liftHeight = LiftArm.LiftHeight.ZERO;
-         else if(toolOp.getButton(GamepadKeys.Button.DPAD_DOWN)) robot.liftArm.liftHeight = LiftArm.LiftHeight.BOTTOM;
-         else if(toolOp.getButton(GamepadKeys.Button.DPAD_LEFT)) robot.liftArm.liftHeight = LiftArm.LiftHeight.MIDDLE;
-         else if(toolOp.getButton(GamepadKeys.Button.DPAD_UP)) robot.liftArm.liftHeight = LiftArm.LiftHeight.TOP;
+         if(toolOp.getButton(GamepadKeys.Button.DPAD_RIGHT)) robot.liftArm.setHeight(LiftHeight.ZERO);
+         else if(toolOp.getButton(GamepadKeys.Button.DPAD_DOWN)) robot.liftArm.setHeight(LiftHeight.BOTTOM);
+         else if(toolOp.getButton(GamepadKeys.Button.DPAD_LEFT)) robot.liftArm.setHeight(LiftHeight.MIDDLE);
+         else if(toolOp.getButton(GamepadKeys.Button.DPAD_UP)) robot.liftArm.setHeight(LiftHeight.TOP);
      }
 
      public void boxFlip()
@@ -165,19 +165,21 @@
 
          if(rightBumper)
          {
-             robot.duckWheel.set(1);
+             robot.duckServo.set(1);
 
          }else if(leftBumper)
              {
-                 robot.duckWheel.set(-1);
+                 robot.duckServo.set(-1);
              }else
                  {
-                     robot.duckWheel.set(0);
+                     robot.duckServo.set(0);
                  }
 
 
 
      }
+
+     /*
      public void intake(double speed)
      {
          double intakeValue = driverOp.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) * speed;
@@ -185,17 +187,19 @@
 
          if(intakeValue > 0.05 )
          {
-             robot.intake.set(intakeValue);
+             robot.intakeMotor.set(intakeValue);
 
          }else if(spitOut > 0.05)
          {
-             robot.intake.set(-spitOut);
+             robot.intakeMotor.set(-spitOut);
          }else
              {
-                 robot.intake.set(0);
+                 robot.intakeMotor.set(0);
              }
 
      }
+
+      */
 
 
 
@@ -209,7 +213,7 @@
 
 
          robot.driveTrain.stop();
-         robot.duckWheel.stop();
+         robot.duckServo.stopMotor();
          robot.lift.stopMotor();
 
 

@@ -1,14 +1,13 @@
 package org.firstinspires.ftc.teamcode.teleop.Autonomous;
 
+import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.Scheduler.Command;
-import org.firstinspires.ftc.teamcode.Scheduler.Scheduler;
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
-import org.firstinspires.ftc.teamcode.subsystems.LiftArm;
+import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DriveTrain;
+import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftHeight;
 
 
 @Autonomous(name="testAuto")
@@ -16,9 +15,6 @@ public class testAuto extends OpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     Robot robot;
-
-    Scheduler scheduler = new Scheduler();
-
 
 
     @Override
@@ -29,18 +25,7 @@ public class testAuto extends OpMode {
         robot.init(hardwareMap, DriveTrain.DriveMode.AUTONOMOUS);
         telemetry.addLine("Initialized");
 
-        robot.liftArm.liftHeight = LiftArm.LiftHeight.ZERO;
-
-        scheduleCommands();
-    }
-
-    private void scheduleCommands() {
-        scheduler.schedule(Command.Type.LIFT, LiftArm.LiftHeight.TOP);
-        scheduler.schedule(Command.Type.SETSERVO, 0.71);
-        scheduler.schedule(Command.Type.SETSERVO, 0.3);
-        scheduler.schedule(Command.Type.LIFT, LiftArm.LiftHeight.BOTTOM);
-        scheduler.schedule(Command.Type.STARTWHEEL);
-        scheduler.schedule(Command.Type.STOPWHEEL);
+        robot.liftArm.setHeight(LiftHeight.ZERO);
     }
 
     @Override
@@ -49,7 +34,6 @@ public class testAuto extends OpMode {
     @Override
     public void start()
     {
-
         runtime.reset();
         robot.box.setPosition(0.3);
 
@@ -58,11 +42,7 @@ public class testAuto extends OpMode {
     @Override
     public void loop()
     {
-        robot.driveTrain.driveTrainController();
-        robot.liftArm.liftController();
-
-        scheduler.schedulerController();
-
+        CommandScheduler.getInstance().run();
     }
 
     @Override
@@ -70,7 +50,7 @@ public class testAuto extends OpMode {
     {
         robot.driveTrain.stop();
         robot.lift.set(0);
-        robot.intake.set(0);
+        robot.intakeMotor.set(0);
 
 
 

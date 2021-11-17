@@ -2,13 +2,16 @@ package org.firstinspires.ftc.teamcode.hardwaremaps;
 
 import com.arcrobotics.ftclib.hardware.ServoEx;
 import com.arcrobotics.ftclib.hardware.motors.CRServo;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
- import org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
+import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DriveTrain;
 import org.firstinspires.ftc.teamcode.hardwaremaps.motors.HerbergerMotor;
-import org.firstinspires.ftc.teamcode.subsystems.LiftArm;
+import org.firstinspires.ftc.teamcode.subsystems.DuckWheel.DuckWheel;
+import org.firstinspires.ftc.teamcode.subsystems.Intake.Intake;
+import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftArm;
 
 public class Robot {
 
@@ -24,24 +27,23 @@ public class Robot {
         public HerbergerMotor rightBack = null;
         public HerbergerMotor leftBack = null;
 
-        public DriveTrain driveTrain = null;
 
-        public HerbergerMotor intake = null;
+        public HerbergerMotor intakeMotor = null;
 
+        public Motor duckServo = null;
 
-        //duckwheel
-        public CRServo duckWheel = null;
-
-        //lift
         public HerbergerMotor lift = null;
         public ServoEx box = null;
 
         public LiftArm liftArm = null;
+        public DriveTrain driveTrain = null;
+        public DuckWheel duckWheel = null;
+        public Intake intake = null;
 
 
 
 
-        // Constructor
+    // Constructor
         // Here we will be creating private constructor
         // restricted to this class itself
         private Robot()
@@ -68,18 +70,9 @@ public class Robot {
         {
             hwMap = ahwMap;
             driveTrain = new DriveTrain(hwMap, driveMode);
-
-
             liftArm = new LiftArm(hwMap);
-
-
-            duckWheel = new CRServo(hwMap,"duckWheel");
-
-
-
-            intake = new HerbergerMotor(hwMap,"intake",134.4);
-
-
+            intake = new Intake(hwMap);
+            duckWheel = new DuckWheel(hwMap);
 
         }
 

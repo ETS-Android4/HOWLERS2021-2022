@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
 
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.drivebase.DifferentialDrive;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
@@ -7,11 +8,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
 import org.firstinspires.ftc.teamcode.hardwaremaps.motors.HerbergerMotor;
+import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class DriveTrain {
+public class DriveTrain extends SubsystemBase {
 
 
     private MotorGroup leftMotors;
@@ -19,11 +18,9 @@ public class DriveTrain {
     private DifferentialDrive driveTrain;
 
     private double speed = 0.6;
-
     public void setSpeed(double speed) {
         this.speed = speed;
     }
-
     public double getSpeed() {
         return speed;
     }
@@ -69,6 +66,11 @@ public class DriveTrain {
         double leftCalculation = leftPID.calculate(robot.leftFront.getEncoderCount());
 
         driveTrain.tankDrive(leftCalculation, rightCalculation);
+    }
+
+    @Override
+    public void periodic() {
+        driveTrainController();
     }
 
     public void autoDrive(double distance) {

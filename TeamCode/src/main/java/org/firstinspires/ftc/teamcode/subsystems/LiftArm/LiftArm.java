@@ -1,30 +1,22 @@
-package org.firstinspires.ftc.teamcode.subsystems;
+package org.firstinspires.ftc.teamcode.subsystems.LiftArm;
 
+import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.drivebase.DifferentialDrive;
 import com.arcrobotics.ftclib.hardware.SimpleServo;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
 import org.firstinspires.ftc.teamcode.hardwaremaps.motors.HerbergerMotor;
+import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
 
-public class LiftArm {
+public class LiftArm extends SubsystemBase {
 
     public PIDController liftPID;
 
-    public enum LiftHeight
-    {
-        TOP,
-        MIDDLE,
-        BOTTOM,
-        ZERO,
+    private LiftHeight liftHeight = LiftHeight.ZERO;
+    public LiftHeight getHeight() { return liftHeight; }
+    public void setHeight(LiftHeight liftHeight) { this.liftHeight = liftHeight; }
 
-    }
-
-    public LiftHeight liftHeight = LiftHeight.ZERO;
 
     public LiftArm(final HardwareMap hwMap) {
         Robot robot = Robot.getInstance();
@@ -35,8 +27,7 @@ public class LiftArm {
         robot.lift.setInverted(true);
         robot.lift.resetEncoder();
 
-        robot.box = new SimpleServo(hwMap,"box",0,90);
-        robot.box.setInverted(true);
+        robot.box = new SimpleServo(hwMap,"box",0,180);
 
         liftPID = new PIDController(10, 0 ,0.01);
     }
@@ -51,31 +42,32 @@ public class LiftArm {
         return speed;
     }
 
-
-    public void setHeight(double setHeight) {
-
-        liftPID.setSetPoint(setHeight);
-
-    }
-
     public void liftController() {
        Robot robot = Robot.getInstance();
 
         switch(liftHeight) {
+            case PICKUP:
+                liftPID.setSetPoint(0);
+                break;
             case ZERO:
-                setHeight(0);
+                liftPID.setSetPoint(750);
                 break;
             case BOTTOM:
-                setHeight(350);
+                liftPID.setSetPoint(2000);
                 break;
             case MIDDLE:
-                setHeight(750);
+                liftPID.setSetPoint(3000);
                 break;
             case TOP:
-                setHeight(1250);
+                liftPID.setSetPoint(4000);
                 break;
         }
         robot.lift.setVelocity(liftPID.calculate(robot.lift.getEncoderCount()));
+    }
+
+    @Override
+    public void periodic() {
+        liftController();
     }
 
     public boolean isBusy() {
@@ -96,9 +88,5 @@ public class LiftArm {
 
 
     }
-
-
-
-
 }
 
