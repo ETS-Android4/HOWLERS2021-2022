@@ -30,6 +30,13 @@
  package org.firstinspires.ftc.teamcode.teleop;
 
 
+ import com.acmerobotics.dashboard.FtcDashboard;
+ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+ import com.arcrobotics.ftclib.command.Command;
+ import com.arcrobotics.ftclib.command.CommandScheduler;
+ import com.arcrobotics.ftclib.command.ConditionalCommand;
+ import com.arcrobotics.ftclib.command.InstantCommand;
+ import com.arcrobotics.ftclib.command.SequentialCommandGroup;
  import com.arcrobotics.ftclib.gamepad.GamepadEx;
  import com.arcrobotics.ftclib.gamepad.GamepadKeys;
  import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -38,84 +45,97 @@
 
 
  import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
+ import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DefaultDrive;
  import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DriveTrain;
+ import org.firstinspires.ftc.teamcode.subsystems.LiftArm.CloseClaw;
+ import org.firstinspires.ftc.teamcode.subsystems.LiftArm.Lift;
  import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftArm;
  import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftHeight;
+ import org.firstinspires.ftc.teamcode.subsystems.LiftArm.OpenClaw;
 
- @TeleOp(name="HerbergerDrive", group="Iterative Opmode")
+ import java.util.function.DoubleSupplier;
+
+ @TeleOp(name="Herberger Drive", group="Iterative Opmode")
  public class HerbergerDrive extends OpMode
  {
      // Declare OpMode members.
      private ElapsedTime runtime = new ElapsedTime();
      Robot robot;
 
-     //BasicDrive basicDrive;
-     //ManualTurretController manualTurretController;
-
      GamepadEx driverOp = null;
      GamepadEx toolOp = null;
-     boolean rightButtonPressed = false;
 
-
-
-
-
-     /*
-      * Code to run ONCE when the driver hits INIT
-      */
      @Override
      public void init() {
-         robot = robot.resetInstance();
+         robot = robot.getInstance();
          robot.init(hardwareMap, DriveTrain.DriveMode.MANUAL);
 
          //Gamepad Initialization
          driverOp = new GamepadEx(gamepad1);
          toolOp = new GamepadEx(gamepad2);
 
-         robot.box.setInverted(true);
-
+         robot.claw.setInverted(true);
 
          // Tell the driver that initialization is complete.
          telemetry.addData("Status", "Initialized");
 
      }
 
-     /*
-      * Code to run REPEATEDLY after the driver hits INIT, but before they hit PLAY
-      */
      @Override
      public void init_loop() {
      }
 
-     /*
-      * Code to run ONCE when the driver hits PLAY
-      */
      @Override
      public void start() {
          runtime.reset();
-         robot.box.setPosition(0.3);
+         robot.claw.setPosition(0.6);
+         robot.liftArm.liftPID.reset();
          robot.liftArm.setHeight(LiftHeight.ZERO);
+
+         new DefaultDrive(robot.driveTrain, () -> driverOp.getLeftY() * robot.driveTrain.getSpeed(), () -> driverOp.getRightX()).schedule();
      }
-
-
-     /*
-      * Code to run REPEATEDLY after the driver hits PLAY but before they hit STOP
-      */
 
      @Override
      public void loop() {
+         CommandScheduler scheduler = CommandScheduler.getInstance();
+         TelemetryPacket packet = new TelemetryPacket();
 
+         driverOp.getGamepadButton(GamepadKeys.Button.A)
+                 .whenPressed(new SequentialCommandGroup(
+                         new OpenClaw(robot.liftArm),
+                         new Lift(robot.liftArm, LiftHeight.PICKUP),
+                         new CloseClaw(robot.liftArm),
+                         new Lift(robot.liftArm, LiftHeight.ZERO)
+                 ));
+         driverOp.getGamepadButton(GamepadKeys.Button.B)
+                 .whenPressed(new InstantCommand(robot.driveTrain::slow, robot.driveTrain))
+                 .whenReleased(new InstantCommand(robot.driveTrain::fast, robot.driveTrain));
 
-         driveTrainController();
-         robot.liftArm.liftController();
-         liftArm();
-         boxFlip();
-         duckWheel();
-         //intake(0.5);
+         toolOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                 new Lift(robot.liftArm, LiftHeight.ZERO));
+         toolOp.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                 new Lift(robot.liftArm, LiftHeight.BOTTOM));
+         toolOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
+                 new Lift(robot.liftArm, LiftHeight.MIDDLE));
+         toolOp.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
+                 new Lift(robot.liftArm, LiftHeight.TOP));
+         toolOp.getGamepadButton(GamepadKeys.Button.B)
+                 .whenPressed(new InstantCommand(robot.duckWheel::run, robot.duckWheel))
+                 .whenReleased(new InstantCommand(robot.duckWheel::stop, robot.duckWheel));
+         toolOp.getGamepadButton(GamepadKeys.Button.A)
+                 .whenPressed(new OpenClaw(robot.liftArm));
+         toolOp.getGamepadButton(GamepadKeys.Button.Y)
+                 .whenPressed(new InstantCommand(robot.duckWheel::runInverted, robot.duckWheel))
+                 .whenReleased(new InstantCommand(robot.duckWheel::stop, robot.duckWheel));
 
-
+         scheduler.run();
+         packet.put("liftPID Error",robot.liftArm.currentError);
+         packet.put("liftPID Target", robot.liftArm.getPIDTarget());
+         packet.put("lift Position", robot.lift.getEncoderCount());
+         packet.put("0", 0);
+         packet.put("5000", 0);
+         FtcDashboard.getInstance().sendTelemetryPacket(packet);
      }
-
 
      public void driveTrainController() {
          double speed = robot.driveTrain.getSpeed();
@@ -124,98 +144,15 @@
          robot.driveTrain.drive(-forward, turn);
      }
 
-
-     public void liftArm() {
-
-         if(toolOp.getButton(GamepadKeys.Button.DPAD_RIGHT)) robot.liftArm.setHeight(LiftHeight.ZERO);
-         else if(toolOp.getButton(GamepadKeys.Button.DPAD_DOWN)) robot.liftArm.setHeight(LiftHeight.BOTTOM);
-         else if(toolOp.getButton(GamepadKeys.Button.DPAD_LEFT)) robot.liftArm.setHeight(LiftHeight.MIDDLE);
-         else if(toolOp.getButton(GamepadKeys.Button.DPAD_UP)) robot.liftArm.setHeight(LiftHeight.TOP);
-     }
-
-     public void boxFlip()
-     {
-         boolean aButton = toolOp.getButton(GamepadKeys.Button.A);
-         boolean bButton = toolOp.getButton(GamepadKeys.Button.B);
-         boolean xButton = toolOp.getButton(GamepadKeys.Button.X);
-
-         if(aButton)
-         {
-             robot.box.setPosition(0.73);
-
-         }
-         if(bButton)
-         {
-             robot.box.setPosition(0.3);
-
-         }
-         if(xButton)
-         {
-             robot.box.setPosition(0.35);
-
-         }
-
-     }
-
-
-     public void duckWheel()
-     {
-         boolean rightBumper = toolOp.getButton(GamepadKeys.Button.RIGHT_BUMPER);
-         boolean leftBumper = toolOp.getButton(GamepadKeys.Button.LEFT_BUMPER);
-
-         if(rightBumper)
-         {
-             robot.duckServo.set(1);
-
-         }else if(leftBumper)
-             {
-                 robot.duckServo.set(-1);
-             }else
-                 {
-                     robot.duckServo.set(0);
-                 }
-
-
-
-     }
-
-     /*
-     public void intake(double speed)
-     {
-         double intakeValue = driverOp.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) * speed;
-         double spitOut = driverOp.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) * speed;
-
-         if(intakeValue > 0.05 )
-         {
-             robot.intakeMotor.set(intakeValue);
-
-         }else if(spitOut > 0.05)
-         {
-             robot.intakeMotor.set(-spitOut);
-         }else
-             {
-                 robot.intakeMotor.set(0);
-             }
-
-     }
-
-      */
-
-
-
-
-
      /*
       * Code to run ONCE after the driver hits STOP
       */
      @Override
      public void stop() {
 
-
          robot.driveTrain.stop();
-         robot.duckServo.stopMotor();
+         robot.duckMotor.stopMotor();
          robot.lift.stopMotor();
-
 
      }
 

@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.subsystems.DriveTrain;
 import com.arcrobotics.ftclib.command.SubsystemBase;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.drivebase.DifferentialDrive;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorGroup;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
-import org.firstinspires.ftc.teamcode.hardwaremaps.motors.HerbergerMotor;
-import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
+import org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers.HerbergerMotor;
 
 public class DriveTrain extends SubsystemBase {
 
@@ -25,8 +26,11 @@ public class DriveTrain extends SubsystemBase {
         return speed;
     }
 
+    public DriveMode driveMode;
+
     public PIDController leftPID;
     public PIDController rightPID;
+
 
     public enum DriveMode {
         AUTONOMOUS,
@@ -36,21 +40,30 @@ public class DriveTrain extends SubsystemBase {
     public DriveTrain(final HardwareMap hwMap, DriveMode driveMode) {
         Robot robot = Robot.getInstance();
 
+        this.driveMode = driveMode;
 
-        robot.rightBack = new HerbergerMotor(hwMap, "rightBack", 134.4);
-        robot.rightFront = new HerbergerMotor(hwMap, "rightFront", 134.4);
-        robot.leftBack = new HerbergerMotor(hwMap, "leftBack", 134.4);
-        robot.leftFront = new HerbergerMotor(hwMap, "leftFront", 134.4);
+
+        robot.rightBack = new Motor(hwMap, "rightBack", Motor.GoBILDA.RPM_312);
+        robot.rightFront = new Motor(hwMap, "rightFront", Motor.GoBILDA.RPM_312);
+        robot.leftBack = new Motor(hwMap, "leftBack", Motor.GoBILDA.RPM_312);
+        robot.leftFront = new Motor(hwMap, "leftFront", Motor.GoBILDA.RPM_312);
+
+        robot.rightBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        robot.rightFront.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        robot.leftBack.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        robot.leftFront.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
 
         leftMotors = new MotorGroup(robot.leftFront, robot.leftBack);
         rightMotors = new MotorGroup(robot.rightFront, robot.rightBack);
 
-        if(driveMode == DriveMode.AUTONOMOUS) rightMotors.setInverted(true);
+        robot.leftFront.setInverted(true);
+        robot.leftBack.setInverted(true);
+        robot.rightBack.setInverted(true);
 
         driveTrain = new DifferentialDrive(leftMotors, rightMotors);
 
-        leftPID = new PIDController(0.001, 0, 0.0001);
-        rightPID = new PIDController(0.001, 0, 0.0001);
+        leftPID = new PIDController(0, 0, 0);
+        rightPID = new PIDController(0, 0, 0);
 
         resetEncoders();
     }
@@ -61,11 +74,13 @@ public class DriveTrain extends SubsystemBase {
     }
 
     public void driveTrainController() {
-        Robot robot = Robot.getInstance();
-        double rightCalculation = rightPID.calculate(robot.rightFront.getEncoderCount());
-        double leftCalculation = leftPID.calculate(robot.leftFront.getEncoderCount());
+        if(driveMode == DriveMode.AUTONOMOUS) {
+            Robot robot = Robot.getInstance();
+            double rightCalculation = rightPID.calculate(robot.rightFront.getCurrentPosition());
+            double leftCalculation = leftPID.calculate(robot.leftFront.getCurrentPosition());
 
-        driveTrain.tankDrive(leftCalculation, rightCalculation);
+            driveTrain.tankDrive(leftCalculation, rightCalculation);
+        }
     }
 
     @Override
@@ -101,13 +116,11 @@ public class DriveTrain extends SubsystemBase {
 
     }
 
-    public boolean isBusy() {
-        Robot robot = Robot.getInstance();
-        boolean isBusy;
-        if (robot.rightFront.busy() && robot.leftBack.busy() && robot.rightBack.busy() && robot.leftFront.busy())
-            isBusy = true;
-        else isBusy = false;
-        return isBusy;
+    public void slow() {
+        setSpeed(0.3);
+    }
+    public void fast() {
+        setSpeed(0.6);
     }
 
     public boolean atSetPoint() {

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardwaremaps.motors;
+package org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -56,8 +56,8 @@ public class HerbergerMotor extends Motor {
         m_motor.setZeroPowerBehavior(behavior);
     }
 
-    public int getEncoderCount() {
-        return (int) (m_motor.getCurrentPosition() - resetVal);
+    public double getEncoderCount() {
+        return m_motor.getCurrentPosition() - resetVal;
     }
 
     public void resetEncoder() {

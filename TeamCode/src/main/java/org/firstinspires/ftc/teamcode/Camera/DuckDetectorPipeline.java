@@ -10,13 +10,8 @@ import org.openftc.easyopencv.OpenCvPipeline;
 
 public class DuckDetectorPipeline extends OpenCvPipeline {
     /*
-     * An enum to define the skystone position
+     * An enum to define the position
      */
-    public enum SkystonePosition {
-        LEFT,
-        CENTER,
-        RIGHT
-    }
 
     /*
      * Some color constants
@@ -27,11 +22,11 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
     /*
      * The core values which define the location and size of the sample regions
      */
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(109, 98);
-    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(181, 98);
-    static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(253, 98);
-    static final int REGION_WIDTH = 20;
-    static final int REGION_HEIGHT = 20;
+    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(10, 230); //left
+    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(80, 230); // center
+    static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(160, 230); // right
+    static final int REGION_WIDTH = 50;
+    static final int REGION_HEIGHT = 50;
 
     /*
      * Points which actually define the sample region rectangles, derived from above values
@@ -78,7 +73,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
     int avg1, avg2, avg3;
 
     // Volatile since accessed by OpMode thread w/o synchronization
-    private volatile SkystonePosition position = SkystonePosition.LEFT;
+    private volatile BarcodePosition position = BarcodePosition.LEFT;
 
     /*
      * This function takes the RGB frame, converts to YCrCb,
@@ -200,18 +195,18 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
 
 
         /*
-         * Find the max of the 3 averages
+         * Find the min of the 3 averages
          */
-        int maxOneTwo = Math.max(avg1, avg2);
-        int max = Math.max(maxOneTwo, avg3);
+        int minOneTwo = Math.min(avg1, avg2);
+        int min = Math.min(minOneTwo, avg3);
 
         /*
          * Now that we found the max, we actually need to go and
          * figure out which sample region that value was from
          */
-        if (max == avg1) // Was it from region 1?
+        if (min == avg1) // Was it from region 1?
         {
-            position = SkystonePosition.LEFT; // Record our analysis
+            position = BarcodePosition.LEFT; // Record our analysis
 
             /*
              * Draw a solid rectangle on top of the chosen region.
@@ -223,9 +218,9 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
                     region1_pointB, // Second point which defines the rectangle
                     GREEN, // The color the rectangle is drawn in
                     -1); // Negative thickness means solid fill
-        } else if (max == avg2) // Was it from region 2?
+        } else if (min == avg2) // Was it from region 2?
         {
-            position = SkystonePosition.CENTER; // Record our analysis
+            position = BarcodePosition.CENTER; // Record our analysis
 
             /*
              * Draw a solid rectangle on top of the chosen region.
@@ -237,9 +232,9 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
                     region2_pointB, // Second point which defines the rectangle
                     GREEN, // The color the rectangle is drawn in
                     -1); // Negative thickness means solid fill
-        } else if (max == avg3) // Was it from region 3?
+        } else if (min == avg3) // Was it from region 3?
         {
-            position = SkystonePosition.RIGHT; // Record our analysis
+            position = BarcodePosition.RIGHT; // Record our analysis
 
             /*
              * Draw a solid rectangle on top of the chosen region.
@@ -261,7 +256,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
         return input;
     }
 
-    public SkystonePosition getAnalysis() {
+    public BarcodePosition getAnalysis() {
         return position;
     }
 

@@ -16,6 +16,7 @@ public class Lift extends CommandBase {
     @Override
     public void execute() {
         liftArm.setHeight(height);
+        liftArm.liftController();
     }
 
     @Override

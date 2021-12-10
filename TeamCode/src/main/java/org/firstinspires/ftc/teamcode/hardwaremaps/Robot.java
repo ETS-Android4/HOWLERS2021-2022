@@ -1,16 +1,15 @@
 package org.firstinspires.ftc.teamcode.hardwaremaps;
 
 import com.arcrobotics.ftclib.hardware.ServoEx;
-import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 
+import org.firstinspires.ftc.teamcode.Camera.Camera;
 import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DriveTrain;
-import org.firstinspires.ftc.teamcode.hardwaremaps.motors.HerbergerMotor;
+import org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers.HerbergerMotor;
 import org.firstinspires.ftc.teamcode.subsystems.DuckWheel.DuckWheel;
-import org.firstinspires.ftc.teamcode.subsystems.Intake.Intake;
 import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftArm;
 
 public class Robot {
@@ -22,24 +21,21 @@ public class Robot {
         HardwareMap hwMap = null;
         private ElapsedTime period = new ElapsedTime();
         //drivetrain
-        public HerbergerMotor rightFront = null;
-        public HerbergerMotor leftFront = null;
-        public HerbergerMotor rightBack = null;
-        public HerbergerMotor leftBack = null;
+        public Motor rightFront = null;
+        public Motor leftFront = null;
+        public Motor rightBack = null;
+        public Motor leftBack = null;
 
-
-        public HerbergerMotor intakeMotor = null;
-
-        public Motor duckServo = null;
+        public Motor duckMotor = null;
 
         public HerbergerMotor lift = null;
-        public ServoEx box = null;
+        public ServoEx claw = null;
+
+        public Camera camera = null;
 
         public LiftArm liftArm = null;
         public DriveTrain driveTrain = null;
         public DuckWheel duckWheel = null;
-        public Intake intake = null;
-
 
 
 
@@ -69,9 +65,9 @@ public class Robot {
         public void init(HardwareMap ahwMap, DriveTrain.DriveMode driveMode)
         {
             hwMap = ahwMap;
+            camera = new Camera(hwMap);
             driveTrain = new DriveTrain(hwMap, driveMode);
             liftArm = new LiftArm(hwMap);
-            intake = new Intake(hwMap);
             duckWheel = new DuckWheel(hwMap);
 
         }

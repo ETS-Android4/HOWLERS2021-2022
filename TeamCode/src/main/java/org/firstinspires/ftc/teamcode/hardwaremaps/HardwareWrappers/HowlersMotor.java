@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.hardwaremaps.motors;
+package org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.DcMotor;

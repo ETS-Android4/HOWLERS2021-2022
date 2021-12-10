@@ -6,30 +6,35 @@ import com.arcrobotics.ftclib.hardware.SimpleServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
-import org.firstinspires.ftc.teamcode.hardwaremaps.motors.HerbergerMotor;
-import org.firstinspires.ftc.teamcode.subsystems.Subsystem;
+import org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers.HerbergerMotor;
 
 public class LiftArm extends SubsystemBase {
 
     public PIDController liftPID;
+    public double getPIDTarget() {
+        return liftPID.getSetPoint();
+    }
 
     private LiftHeight liftHeight = LiftHeight.ZERO;
     public LiftHeight getHeight() { return liftHeight; }
     public void setHeight(LiftHeight liftHeight) { this.liftHeight = liftHeight; }
-
+    public double currentError;
+    public boolean PIDCONTROL = true;
 
     public LiftArm(final HardwareMap hwMap) {
         Robot robot = Robot.getInstance();
 
 
         robot.lift = new HerbergerMotor(hwMap, "lift", 134.4);
-        robot.lift.runUsingEncoder();
         robot.lift.setInverted(true);
         robot.lift.resetEncoder();
 
-        robot.box = new SimpleServo(hwMap,"box",0,180);
+        robot.claw = new SimpleServo(hwMap,"box",200,360);
+        robot.claw.setInverted(true);
 
-        liftPID = new PIDController(10, 0 ,0.01);
+        liftPID = new PIDController(0.004, 0, 0);
+        liftPID.setTolerance(10);
+        currentError = 0;
     }
 
     private double speed = 0.6;
@@ -43,32 +48,50 @@ public class LiftArm extends SubsystemBase {
     }
 
     public void liftController() {
+        if(!PIDCONTROL) return;
        Robot robot = Robot.getInstance();
 
         switch(liftHeight) {
             case PICKUP:
-                liftPID.setSetPoint(0);
+                liftPID.setSetPoint(30);
                 break;
             case ZERO:
-                liftPID.setSetPoint(750);
+                liftPID.setSetPoint(1300);
                 break;
             case BOTTOM:
-                liftPID.setSetPoint(2000);
+                liftPID.setSetPoint(5000);
                 break;
             case MIDDLE:
-                liftPID.setSetPoint(3000);
+                liftPID.setSetPoint(6000);
                 break;
             case TOP:
-                liftPID.setSetPoint(4000);
+                liftPID.setSetPoint(8500);
                 break;
         }
-        robot.lift.setVelocity(liftPID.calculate(robot.lift.getEncoderCount()));
+        currentError = liftPID.calculate(robot.lift.getEncoderCount());
+        robot.lift.set(liftPID.calculate(robot.lift.getEncoderCount()));
+    }
+
+    public void DISABLE() {
+        Robot robot = Robot.getInstance();
+        PIDCONTROL = false;
+        robot.lift.set(0);
     }
 
     @Override
     public void periodic() {
         liftController();
     }
+
+    public void openClaw() {
+        Robot.getInstance().claw.setPosition(0.6);
+    }
+
+    public void closeClaw() {
+        Robot.getInstance().claw.setPosition(0.98);
+    }
+
+
 
     public boolean isBusy() {
         Robot robot = Robot.getInstance();
