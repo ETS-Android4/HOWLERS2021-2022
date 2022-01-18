@@ -31,7 +31,7 @@ public class Robot {
         public HerbergerMotor lift = null;
         public ServoEx claw = null;
 
-        public Camera camera = null;
+        //public Camera camera = null;
 
         public LiftArm liftArm = null;
         public DriveTrain driveTrain = null;
@@ -65,7 +65,7 @@ public class Robot {
         public void init(HardwareMap ahwMap, DriveTrain.DriveMode driveMode)
         {
             hwMap = ahwMap;
-            camera = new Camera(hwMap);
+            //camera = new Camera(hwMap);
             driveTrain = new DriveTrain(hwMap, driveMode);
             liftArm = new LiftArm(hwMap);
             duckWheel = new DuckWheel(hwMap);

@@ -29,7 +29,7 @@ public class BlueLeft extends OpMode {
 
     @Override
     public void init() {
-        robot = Robot.getInstance();
+        robot = Robot.resetInstance();
         robot.init(hardwareMap, DriveTrain.DriveMode.AUTONOMOUS);
     }
 

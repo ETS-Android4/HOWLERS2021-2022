@@ -19,7 +19,7 @@ public class LiftArm extends SubsystemBase {
     public LiftHeight getHeight() { return liftHeight; }
     public void setHeight(LiftHeight liftHeight) { this.liftHeight = liftHeight; }
     public double currentError;
-    public boolean PIDCONTROL = true;
+    public boolean PIDControl = true;
 
     public LiftArm(final HardwareMap hwMap) {
         Robot robot = Robot.getInstance();
@@ -28,12 +28,13 @@ public class LiftArm extends SubsystemBase {
         robot.lift = new HerbergerMotor(hwMap, "lift", 134.4);
         robot.lift.setInverted(true);
         robot.lift.resetEncoder();
+        liftHeight = LiftHeight.ZERO;
 
         robot.claw = new SimpleServo(hwMap,"box",200,360);
         robot.claw.setInverted(true);
 
         liftPID = new PIDController(0.004, 0, 0);
-        liftPID.setTolerance(10);
+        liftPID.reset();
         currentError = 0;
     }
 
@@ -48,18 +49,21 @@ public class LiftArm extends SubsystemBase {
     }
 
     public void liftController() {
-        if(!PIDCONTROL) return;
+        if(!PIDControl) return;
        Robot robot = Robot.getInstance();
+       double calculation;
 
         switch(liftHeight) {
+            case ZERO:
+                liftPID.setSetPoint(0);
             case PICKUP:
                 liftPID.setSetPoint(30);
                 break;
-            case ZERO:
+            case DRIVE:
                 liftPID.setSetPoint(1300);
                 break;
             case BOTTOM:
-                liftPID.setSetPoint(5000);
+                liftPID.setSetPoint(3000);
                 break;
             case MIDDLE:
                 liftPID.setSetPoint(6000);
@@ -68,13 +72,14 @@ public class LiftArm extends SubsystemBase {
                 liftPID.setSetPoint(8500);
                 break;
         }
-        currentError = liftPID.calculate(robot.lift.getEncoderCount());
-        robot.lift.set(liftPID.calculate(robot.lift.getEncoderCount()));
+        calculation = liftPID.calculate(robot.lift.getEncoderCount());
+        currentError = calculation;
+        robot.lift.set(calculation);
     }
 
     public void DISABLE() {
         Robot robot = Robot.getInstance();
-        PIDCONTROL = false;
+        PIDControl = false;
         robot.lift.set(0);
     }
 
@@ -106,9 +111,8 @@ public class LiftArm extends SubsystemBase {
     public void stop()
     {
         Robot robot = Robot.getInstance();
-
+        PIDControl = false;
         robot.lift.set(0);
-
 
     }
 }

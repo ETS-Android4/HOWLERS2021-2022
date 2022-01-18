@@ -5,7 +5,8 @@ public enum LiftHeight
     TOP,
     MIDDLE,
     BOTTOM,
-    ZERO,
+    DRIVE,
     PICKUP,
+    ZERO
 
 }

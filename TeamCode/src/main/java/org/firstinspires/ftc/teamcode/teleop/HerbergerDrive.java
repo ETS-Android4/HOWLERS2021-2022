@@ -67,7 +67,7 @@
 
      @Override
      public void init() {
-         robot = robot.getInstance();
+         robot = robot.resetInstance();
          robot.init(hardwareMap, DriveTrain.DriveMode.MANUAL);
 
          //Gamepad Initialization
@@ -90,7 +90,7 @@
          runtime.reset();
          robot.claw.setPosition(0.6);
          robot.liftArm.liftPID.reset();
-         robot.liftArm.setHeight(LiftHeight.ZERO);
+         robot.liftArm.setHeight(LiftHeight.DRIVE);
 
          new DefaultDrive(robot.driveTrain, () -> driverOp.getLeftY() * robot.driveTrain.getSpeed(), () -> driverOp.getRightX()).schedule();
      }
@@ -105,14 +105,23 @@
                          new OpenClaw(robot.liftArm),
                          new Lift(robot.liftArm, LiftHeight.PICKUP),
                          new CloseClaw(robot.liftArm),
-                         new Lift(robot.liftArm, LiftHeight.ZERO)
+                         new Lift(robot.liftArm, LiftHeight.DRIVE)
                  ));
          driverOp.getGamepadButton(GamepadKeys.Button.B)
                  .whenPressed(new InstantCommand(robot.driveTrain::slow, robot.driveTrain))
                  .whenReleased(new InstantCommand(robot.driveTrain::fast, robot.driveTrain));
+         driverOp.getGamepadButton(GamepadKeys.Button.X)
+                 .whenPressed(new SequentialCommandGroup(
+                         new OpenClaw(robot.liftArm),
+                         new Lift(robot.liftArm, LiftHeight.PICKUP)
+                 ))
+                 .whenReleased(new SequentialCommandGroup(
+                         new CloseClaw(robot.liftArm),
+                         new Lift(robot.liftArm, LiftHeight.DRIVE)
+                 ));
 
          toolOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                 new Lift(robot.liftArm, LiftHeight.ZERO));
+                 new Lift(robot.liftArm, LiftHeight.DRIVE));
          toolOp.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
                  new Lift(robot.liftArm, LiftHeight.BOTTOM));
          toolOp.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
