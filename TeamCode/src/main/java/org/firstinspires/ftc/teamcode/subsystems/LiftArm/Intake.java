@@ -5,18 +5,18 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import kotlin.jvm.Volatile;
 
-public class CloseClaw extends CommandBase {
+public class Intake extends CommandBase {
 
     private ElapsedTime timer = new ElapsedTime();
     LiftArm liftArm;
 
-    public CloseClaw(LiftArm liftArm) {
+    public Intake(LiftArm liftArm) {
         this.liftArm = liftArm;
     }
 
     @Override
     public void initialize() {
-        liftArm.closeClaw();
+        liftArm.intake();
         timer.reset();
     }
 

@@ -20,7 +20,7 @@ public class DefaultDrive extends CommandBase {
 
     @Override
     public void execute() {
-        driveTrain.drive(forward.getAsDouble(), turn.getAsDouble());
+        driveTrain.setManualDrive(forward.getAsDouble(), turn.getAsDouble());
     }
 
 }

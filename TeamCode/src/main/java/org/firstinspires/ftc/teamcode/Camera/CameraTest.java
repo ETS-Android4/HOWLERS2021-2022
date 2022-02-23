@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.Camera;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.openftc.easyopencv.OpenCvCamera;
@@ -13,14 +12,14 @@ import org.openftc.easyopencv.OpenCvInternalCamera;
 public class CameraTest extends LinearOpMode {
 
     OpenCvInternalCamera phoneCam;
-    DuckDetectorPipeline pipeline;
+    TSEDetectorPipeline pipeline;
 
     @Override
     public void runOpMode() {
         
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        pipeline = new DuckDetectorPipeline();
+        pipeline = new TSEDetectorPipeline();
         phoneCam.setPipeline(pipeline);
 
         // We set the viewport policy to optimized view so the preview doesn't appear 90 deg

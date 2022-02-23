@@ -14,10 +14,11 @@ public class DuckWheel extends SubsystemBase {
         robot = Robot.getInstance();
         robot.duckMotor = new Motor(hwMap, "Duck Wheel", Motor.GoBILDA.RPM_1150);
         robot.duckMotor.setInverted(true);
+        robot.duckMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
     }
 
     public void run() {
-        robot.duckMotor.set(0.4);
+        robot.duckMotor.set(0.2);
     }
 
     public void stop() {
@@ -25,7 +26,7 @@ public class DuckWheel extends SubsystemBase {
     }
 
     public void runInverted() {
-        robot.duckMotor.set(-0.4);
+        robot.duckMotor.set(-0.2);
     }
 
 }

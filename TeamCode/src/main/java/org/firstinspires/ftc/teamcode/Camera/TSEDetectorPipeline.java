@@ -8,7 +8,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvPipeline;
 
-public class DuckDetectorPipeline extends OpenCvPipeline {
+public class TSEDetectorPipeline extends OpenCvPipeline {
     /*
      * An enum to define the position
      */
@@ -22,9 +22,9 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
     /*
      * The core values which define the location and size of the sample regions
      */
-    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(10, 230); //left
-    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(80, 230); // center
-    static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(160, 230); // right
+    static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(10, 200); //left
+    static final Point REGION2_TOPLEFT_ANCHOR_POINT = new Point(100, 200); // center
+    static final Point REGION3_TOPLEFT_ANCHOR_POINT = new Point(180, 200); // right
     static final int REGION_WIDTH = 50;
     static final int REGION_HEIGHT = 50;
 
@@ -73,7 +73,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
     int avg1, avg2, avg3;
 
     // Volatile since accessed by OpMode thread w/o synchronization
-    private volatile BarcodePosition position = BarcodePosition.LEFT;
+    private volatile TSEPosition position = TSEPosition.LEFT;
 
     /*
      * This function takes the RGB frame, converts to YCrCb,
@@ -206,7 +206,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
          */
         if (min == avg1) // Was it from region 1?
         {
-            position = BarcodePosition.LEFT; // Record our analysis
+            position = TSEPosition.LEFT; // Record our analysis
 
             /*
              * Draw a solid rectangle on top of the chosen region.
@@ -220,7 +220,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
                     -1); // Negative thickness means solid fill
         } else if (min == avg2) // Was it from region 2?
         {
-            position = BarcodePosition.CENTER; // Record our analysis
+            position = TSEPosition.CENTER; // Record our analysis
 
             /*
              * Draw a solid rectangle on top of the chosen region.
@@ -234,7 +234,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
                     -1); // Negative thickness means solid fill
         } else if (min == avg3) // Was it from region 3?
         {
-            position = BarcodePosition.RIGHT; // Record our analysis
+            position = TSEPosition.RIGHT; // Record our analysis
 
             /*
              * Draw a solid rectangle on top of the chosen region.
@@ -256,7 +256,7 @@ public class DuckDetectorPipeline extends OpenCvPipeline {
         return input;
     }
 
-    public BarcodePosition getAnalysis() {
+    public TSEPosition getAnalysis() {
         return position;
     }
 

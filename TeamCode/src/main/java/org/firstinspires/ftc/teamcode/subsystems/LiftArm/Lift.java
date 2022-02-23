@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.subsystems.LiftArm;
 
 import com.arcrobotics.ftclib.command.CommandBase;
 
+import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
+
 public class Lift extends CommandBase {
 
     private final LiftArm liftArm;
@@ -14,13 +16,14 @@ public class Lift extends CommandBase {
     }
 
     @Override
-    public void execute() {
+    public void initialize() {
         liftArm.setHeight(height);
-        liftArm.liftController();
     }
 
     @Override
     public boolean isFinished() {
-        return liftArm.liftPID.atSetPoint();
+        Robot robot = Robot.getInstance();
+
+        return Math.abs(liftArm.liftGet().getTargetPosition() - robot.lift.getEncoderCount()) < 100;
     }
 }

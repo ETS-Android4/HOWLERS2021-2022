@@ -9,16 +9,16 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvInternalCamera;
 
 public class Camera {
-    OpenCvInternalCamera phoneCam;
-    DuckDetectorPipeline pipeline;
+    public OpenCvInternalCamera phoneCam;
+    public TSEDetectorPipeline pipeline;
 
     public Camera(final HardwareMap hwMap)
     {
         Robot robot = Robot.getInstance();
 
         int cameraMonitorViewId = hwMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hwMap.appContext.getPackageName());
-        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
-        pipeline = new DuckDetectorPipeline();
+        phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.FRONT, cameraMonitorViewId);
+        pipeline = new TSEDetectorPipeline();
         phoneCam.setPipeline(pipeline);
 
         // We set the viewport policy to optimized view so the preview doesn't appear 90 deg
@@ -30,7 +30,7 @@ public class Camera {
             @Override
             public void onOpened()
             {
-                phoneCam.startStreaming(320,240, OpenCvCameraRotation.UPSIDE_DOWN);
+                phoneCam.startStreaming(320,240, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -38,7 +38,7 @@ public class Camera {
             }
         });
     }
-    public BarcodePosition getPosition() {
+    public TSEPosition getPosition() {
         return pipeline.getAnalysis();
     }
 

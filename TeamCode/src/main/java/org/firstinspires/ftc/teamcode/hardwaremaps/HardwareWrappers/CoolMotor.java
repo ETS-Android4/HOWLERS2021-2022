@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-public class HerbergerMotor extends Motor {
+public class CoolMotor extends Motor {
     private DcMotorEx m_motor;
     private double resetVal;
 
@@ -14,7 +14,7 @@ public class HerbergerMotor extends Motor {
     private String name;
     public String getName() { return name; }
 
-    public HerbergerMotor(HardwareMap hMap, String name, double TPR) {
+    public CoolMotor(HardwareMap hMap, String name, double TPR) {
         m_motor = hMap.get(DcMotorEx.class, name);
         TICKS_PER_REV = TPR;
         this.name = name;
@@ -57,11 +57,12 @@ public class HerbergerMotor extends Motor {
     }
 
     public double getEncoderCount() {
-        return m_motor.getCurrentPosition() - resetVal;
+        return m_motor.getCurrentPosition();
     }
 
     public void resetEncoder() {
-        resetVal = m_motor.getCurrentPosition();
+        m_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        m_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public double getNumRevolutions() {

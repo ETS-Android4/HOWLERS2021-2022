@@ -32,9 +32,7 @@
 
  import com.acmerobotics.dashboard.FtcDashboard;
  import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
- import com.arcrobotics.ftclib.command.Command;
  import com.arcrobotics.ftclib.command.CommandScheduler;
- import com.arcrobotics.ftclib.command.ConditionalCommand;
  import com.arcrobotics.ftclib.command.InstantCommand;
  import com.arcrobotics.ftclib.command.SequentialCommandGroup;
  import com.arcrobotics.ftclib.gamepad.GamepadEx;
@@ -47,13 +45,9 @@
  import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
  import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DefaultDrive;
  import org.firstinspires.ftc.teamcode.subsystems.DriveTrain.DriveTrain;
- import org.firstinspires.ftc.teamcode.subsystems.LiftArm.CloseClaw;
+ import org.firstinspires.ftc.teamcode.subsystems.DuckWheel.Spin;
  import org.firstinspires.ftc.teamcode.subsystems.LiftArm.Lift;
- import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftArm;
  import org.firstinspires.ftc.teamcode.subsystems.LiftArm.LiftHeight;
- import org.firstinspires.ftc.teamcode.subsystems.LiftArm.OpenClaw;
-
- import java.util.function.DoubleSupplier;
 
  @TeleOp(name="Herberger Drive", group="Iterative Opmode")
  public class HerbergerDrive extends OpMode
@@ -67,14 +61,12 @@
 
      @Override
      public void init() {
-         robot = robot.resetInstance();
-         robot.init(hardwareMap, DriveTrain.DriveMode.MANUAL);
+         robot = Robot.resetInstance();
+         robot.init(hardwareMap, DriveTrain.DriveMode.MANUAL,true);
 
          //Gamepad Initialization
          driverOp = new GamepadEx(gamepad1);
          toolOp = new GamepadEx(gamepad2);
-
-         robot.claw.setInverted(true);
 
          // Tell the driver that initialization is complete.
          telemetry.addData("Status", "Initialized");
@@ -83,42 +75,47 @@
 
      @Override
      public void init_loop() {
+         robot.clearBulkCache();
+         if(driverOp.getButton(GamepadKeys.Button.LEFT_BUMPER)) { robot.lift.resetEncoder(); telemetry.addData("LIFT","RESET"); }
      }
 
      @Override
      public void start() {
          runtime.reset();
-         robot.claw.setPosition(0.6);
-         robot.liftArm.liftPID.reset();
          robot.liftArm.setHeight(LiftHeight.DRIVE);
 
-         new DefaultDrive(robot.driveTrain, () -> driverOp.getLeftY() * robot.driveTrain.getSpeed(), () -> driverOp.getRightX()).schedule();
+         new DefaultDrive(robot.driveTrain, () -> driverOp.getLeftY(), () -> driverOp.getRightX()).schedule();
      }
 
      @Override
      public void loop() {
+         robot.clearBulkCache();
          CommandScheduler scheduler = CommandScheduler.getInstance();
          TelemetryPacket packet = new TelemetryPacket();
 
          driverOp.getGamepadButton(GamepadKeys.Button.A)
+                 .whenPressed(new InstantCommand(robot.liftArm::intake))
+                 .whenReleased(new InstantCommand(robot.liftArm::stopIntake));
+         driverOp.getGamepadButton(GamepadKeys.Button.X)
                  .whenPressed(new SequentialCommandGroup(
-                         new OpenClaw(robot.liftArm),
-                         new Lift(robot.liftArm, LiftHeight.PICKUP),
-                         new CloseClaw(robot.liftArm),
+                         new InstantCommand(robot.liftArm::intake),
+                         new Lift(robot.liftArm, LiftHeight.ZERO)
+                 ))
+                 .whenReleased(new SequentialCommandGroup(
+                         new InstantCommand(robot.liftArm::stopIntake),
                          new Lift(robot.liftArm, LiftHeight.DRIVE)
                  ));
          driverOp.getGamepadButton(GamepadKeys.Button.B)
-                 .whenPressed(new InstantCommand(robot.driveTrain::slow, robot.driveTrain))
-                 .whenReleased(new InstantCommand(robot.driveTrain::fast, robot.driveTrain));
-         driverOp.getGamepadButton(GamepadKeys.Button.X)
                  .whenPressed(new SequentialCommandGroup(
-                         new OpenClaw(robot.liftArm),
-                         new Lift(robot.liftArm, LiftHeight.PICKUP)
+                         new InstantCommand(robot.liftArm::intake),
+                         new Lift(robot.liftArm, LiftHeight.ZERO)
                  ))
                  .whenReleased(new SequentialCommandGroup(
-                         new CloseClaw(robot.liftArm),
                          new Lift(robot.liftArm, LiftHeight.DRIVE)
                  ));
+
+         if(driverOp.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.2) robot.driveTrain.slow();
+         else robot.driveTrain.fast();
 
          toolOp.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
                  new Lift(robot.liftArm, LiftHeight.DRIVE));
@@ -128,15 +125,21 @@
                  new Lift(robot.liftArm, LiftHeight.MIDDLE));
          toolOp.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
                  new Lift(robot.liftArm, LiftHeight.TOP));
-         toolOp.getGamepadButton(GamepadKeys.Button.B)
-                 .whenPressed(new InstantCommand(robot.duckWheel::run, robot.duckWheel))
-                 .whenReleased(new InstantCommand(robot.duckWheel::stop, robot.duckWheel));
-         toolOp.getGamepadButton(GamepadKeys.Button.A)
-                 .whenPressed(new OpenClaw(robot.liftArm));
-         toolOp.getGamepadButton(GamepadKeys.Button.Y)
-                 .whenPressed(new InstantCommand(robot.duckWheel::runInverted, robot.duckWheel))
-                 .whenReleased(new InstantCommand(robot.duckWheel::stop, robot.duckWheel));
+         toolOp.getGamepadButton(GamepadKeys.Button.X)
+                 .whenPressed(new Lift(robot.liftArm, LiftHeight.CAP));
 
+
+         toolOp.getGamepadButton(GamepadKeys.Button.A)
+                 .whenPressed(new InstantCommand(robot.liftArm::intakeReversed))
+                 .whenReleased(new InstantCommand(robot.liftArm::stopIntake));
+         toolOp.getGamepadButton(GamepadKeys.Button.B)
+                 .whenPressed(new InstantCommand(robot.liftArm::intake))
+                 .whenReleased(new InstantCommand(robot.liftArm::stopIntake));
+
+         toolOp.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER)
+                 .whenHeld(new Spin(robot.duckWheel,runtime, Spin.Side.BLUE));
+         toolOp.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER)
+                 .whenHeld(new Spin(robot.duckWheel,runtime, Spin.Side.RED));
          scheduler.run();
          packet.put("liftPID Error",robot.liftArm.currentError);
          packet.put("liftPID Target", robot.liftArm.getPIDTarget());
@@ -146,19 +149,13 @@
          FtcDashboard.getInstance().sendTelemetryPacket(packet);
      }
 
-     public void driveTrainController() {
-         double speed = robot.driveTrain.getSpeed();
-         double turn = driverOp.getLeftX() * -speed;
-         double forward = driverOp.getLeftY() * speed;
-         robot.driveTrain.drive(-forward, turn);
-     }
-
      /*
       * Code to run ONCE after the driver hits STOP
       */
      @Override
      public void stop() {
 
+         CommandScheduler.getInstance().cancelAll();
          robot.driveTrain.stop();
          robot.duckMotor.stopMotor();
          robot.lift.stopMotor();

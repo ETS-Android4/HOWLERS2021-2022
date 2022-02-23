@@ -1,40 +1,45 @@
 package org.firstinspires.ftc.teamcode.subsystems.LiftArm;
 
+import com.acmerobotics.roadrunner.control.PIDCoefficients;
+import com.acmerobotics.roadrunner.control.PIDFController;
 import com.arcrobotics.ftclib.command.SubsystemBase;
-import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.hardware.SimpleServo;
+import com.arcrobotics.ftclib.hardware.motors.CRServo;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.hardwaremaps.Robot;
-import org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers.HerbergerMotor;
+import org.firstinspires.ftc.teamcode.hardwaremaps.HardwareWrappers.CoolMotor;
 
 public class LiftArm extends SubsystemBase {
 
-    public PIDController liftPID;
+    private PIDFController liftPID;
+    public PIDFController liftGet() {
+        return liftPID;
+    }
+    public PIDFController liftSet(PIDFController liftPID) {
+        this.liftPID = liftPID;
+        return this.liftPID;
+    }
     public double getPIDTarget() {
-        return liftPID.getSetPoint();
+        return liftPID.getTargetPosition();
     }
 
-    private LiftHeight liftHeight = LiftHeight.ZERO;
+    private static LiftHeight liftHeight = LiftHeight.ZERO;
     public LiftHeight getHeight() { return liftHeight; }
     public void setHeight(LiftHeight liftHeight) { this.liftHeight = liftHeight; }
     public double currentError;
     public boolean PIDControl = true;
+    public double calculation = 0;
 
     public LiftArm(final HardwareMap hwMap) {
         Robot robot = Robot.getInstance();
 
 
-        robot.lift = new HerbergerMotor(hwMap, "lift", 134.4);
+        robot.lift = new CoolMotor(hwMap, "lift", 134.4);
         robot.lift.setInverted(true);
-        robot.lift.resetEncoder();
-        liftHeight = LiftHeight.ZERO;
+        liftPID = new PIDFController(new PIDCoefficients(0.0015, 0, 0));
 
-        robot.claw = new SimpleServo(hwMap,"box",200,360);
-        robot.claw.setInverted(true);
+        robot.intake = new CRServo(hwMap,"box");
 
-        liftPID = new PIDController(0.004, 0, 0);
-        liftPID.reset();
         currentError = 0;
     }
 
@@ -51,36 +56,32 @@ public class LiftArm extends SubsystemBase {
     public void liftController() {
         if(!PIDControl) return;
        Robot robot = Robot.getInstance();
-       double calculation;
 
         switch(liftHeight) {
             case ZERO:
-                liftPID.setSetPoint(0);
+                liftPID.setTargetPosition(0);
             case PICKUP:
-                liftPID.setSetPoint(30);
+                liftPID.setTargetPosition(100);
                 break;
             case DRIVE:
-                liftPID.setSetPoint(1300);
+                liftPID.setTargetPosition(1300);
                 break;
             case BOTTOM:
-                liftPID.setSetPoint(3000);
+                liftPID.setTargetPosition(3000);
                 break;
             case MIDDLE:
-                liftPID.setSetPoint(6000);
+                liftPID.setTargetPosition(6500);
                 break;
             case TOP:
-                liftPID.setSetPoint(8500);
+                liftPID.setTargetPosition(8500);
+                break;
+            case CAP:
+                liftPID.setTargetPosition(10500);
                 break;
         }
-        calculation = liftPID.calculate(robot.lift.getEncoderCount());
-        currentError = calculation;
+        calculation = liftPID.update(robot.lift.getEncoderCount());
         robot.lift.set(calculation);
-    }
-
-    public void DISABLE() {
-        Robot robot = Robot.getInstance();
-        PIDControl = false;
-        robot.lift.set(0);
+        currentError = liftPID.getLastError();
     }
 
     @Override
@@ -88,12 +89,18 @@ public class LiftArm extends SubsystemBase {
         liftController();
     }
 
-    public void openClaw() {
-        Robot.getInstance().claw.setPosition(0.6);
+    public void intake() {
+        Robot.getInstance().intake.set(1);
     }
 
-    public void closeClaw() {
-        Robot.getInstance().claw.setPosition(0.98);
+    public void intakeReversed() {
+        Robot.getInstance().intake.set(-1);
+    }
+
+    public void stopIntake() { Robot.getInstance().intake.set(0);}
+
+    public void resetEncoder() {
+        Robot.getInstance().lift.resetEncoder();
     }
 
 
